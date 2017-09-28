@@ -1,0 +1,11 @@
+  language: go
+  go:
+    - 1.9
+
+gobuild_args: -ldflags "-linkmode external -extldflags -static"
+
+install:
+  - go get github.com/tools/godep
+  - go get github.com/onsi/ginkgo/ginkgo
+  - go get github.com/onsi/gomega
+  - dep ensure
