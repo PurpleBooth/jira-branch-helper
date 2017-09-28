@@ -1,4 +1,5 @@
-// 	mnemonic - a terrible mnemonic generator
+// 	jira-branch-helper - Build a string that can be used for a branch name from the details in a Jira ticket
+//
 // 	Copyright (C) 2017 Billie Alice Thompson
 //
 // 	This program is free software: you can redistribute it and/or modify
@@ -21,8 +22,8 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/PurpleBooth/jira-branch-helper/jira/branchhelper"
 	"github.com/andygrunwald/go-jira"
-	"github.com/purplebooth/jira-branch-helper/jira/branchhelper"
 	"github.com/urfave/cli"
 )
 
