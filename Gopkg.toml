@@ -20,6 +20,7 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
+ignored = ["github.com/purplebooth/jira-branch-helper/jira/branchhelper"]
 
 [[constraint]]
   name = "github.com/andygrunwald/go-jira"
