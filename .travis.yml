@@ -1,5 +1,5 @@
 language: go
-
+sudo: required
 # Only the last two Go releases are supported by the Go team with security
 # updates. Any versions older than that should be considered deprecated.
 # Don't bother testing with them. tip builds your code with the latest
@@ -10,8 +10,16 @@ go:
   - 1.9
   - tip
 
-sudo: false
+services:
+  - docker
+
 gobuild_args: -ldflags "-linkmode external -extldflags -static"
+
+before_install:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y install docker-ce
 
 # Skip the install step. Don't `go get` dependencies. Only build with the
 # code in vendor/
@@ -42,3 +50,4 @@ before_script:
 # in a modern Go project.
 script:
   - (cd jira/branchhelper && go test)
+  - docker build .
