@@ -4,7 +4,7 @@ import (
 	"github.com/andygrunwald/go-jira"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/purplebooth/jira-branch-helper/jira/branchhelper"
+	. "github.com/PurpleBooth/jira-branch-helper/jira/branchhelper"
 )
 
 var _ = Describe("BranchHelper", func() {

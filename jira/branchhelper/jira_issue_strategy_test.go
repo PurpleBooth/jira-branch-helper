@@ -1,7 +1,7 @@
 package branchhelper_test
 
 import (
-	. "github.com/purplebooth/jira-branch-helper/jira/branchhelper"
+	. "github.com/PurpleBooth/jira-branch-helper/jira/branchhelper"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
