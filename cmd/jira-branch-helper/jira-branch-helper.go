@@ -43,9 +43,11 @@ const (
 const ArgumentJiraEndpoint = "jira-endpoint"
 const DefaultTemplate = "{{.Key | ToLower }}-{{.Fields.Summary | Trim | KebabCase }}"
 
+var AppVersion string
+
 func main() {
 	app := cli.NewApp()
-	app.Version = "v0.1.1"
+	app.Version = AppVersion
 	app.Authors = []cli.Author{
 		{
 			Name:  "Billie Alice Thompson",

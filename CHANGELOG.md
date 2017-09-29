@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.2] - 2017-09-29
+### Changed
+- Version set from LD Flags ([#6])
+
+### Added
+- Fix failing deploy ([#6])
+
+[#6]: https://github.com/PurpleBooth/jira-branch-helper/pull/6
+
 ## [0.1.1] - 2017-09-29
 ### Added
 - Test using travis ([#1], [#2])
@@ -26,7 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Initial release
 
-[Unreleased]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/PurpleBooth/jira-branch-helper/commit/0f6abaa1ca2a87832158c14bb44230275c2fd2ca
 
