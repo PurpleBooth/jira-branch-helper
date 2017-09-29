@@ -1,53 +1,52 @@
 language: go
 sudo: required
-# Only the last two Go releases are supported by the Go team with security
-# updates. Any versions older than that should be considered deprecated.
-# Don't bother testing with them. tip builds your code with the latest
-# development version of Go. This can warn you that your code will break
-# in the next version of Go. Don't worry! Later we declare that test runs
-# are allowed to fail on Go tip.
+
 go:
   - 1.9
-  - tip
+
+
+
+matrix:
+  include:
+    - os: linux
+      env:
+        - RELEASE_DIR=release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+        - RELEASE_TAR=$RELEASE_DIR.tar.gz
+    - os: osx
+      env:
+        - RELEASE_DIR=release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+        - RELEASE_TAR=$RELEASE_DIR.tar.gz
 
 services:
   - docker
 
-gobuild_args: -ldflags "-linkmode external -extldflags -static"
-
 before_install:
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  - sudo apt-get update
-  - sudo apt-get -y install docker-ce
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get update ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  sudo apt-get -y install docker-ce ; fi
 
-# Skip the install step. Don't `go get` dependencies. Only build with the
-# code in vendor/
 install:
-  - go get -u github.com/golang/dep/cmd/dep
-  - go get github.com/onsi/ginkgo/ginkgo
-  - go get github.com/onsi/gomega
-  - dep ensure
+- go get -u github.com/golang/dep/cmd/dep
+- go get github.com/onsi/ginkgo/ginkgo
+- go get github.com/onsi/gomega
+- dep ensure
+- go build -o $GOPATH/bin/jira-branch-helper cmd/jira-branch-helper/jira-branch-helper.go
 
-matrix:
-  # It's ok if our code fails on unstable development versions of Go.
-  allow_failures:
-    - go: tip
-  # Don't wait for tip tests to finish. Mark the test run green if the
-  # tests pass on the stable versions of Go.
-  fast_finish: true
-
-# Anything in before_script: that returns a nonzero exit code will
-# flunk the build and immediately stop. It's sorta like having
-# set -e enabled in bash.
-before_script:
-  - GO_FILES=$(find . -iname '*.go' | grep -v /vendor/)  # All the .go files, excluding vendor/
-  - PKGS=$(go list ./... | grep -v /vendor/)             # All the import paths, excluding vendor/
-  - go get github.com/golang/lint/golint                 # Linter
-  - go get honnef.co/go/tools/cmd/megacheck              # Badass static analyzer/linter
-
-# script always run to completion (set +e). All of these code checks are must haves
-# in a modern Go project.
 script:
   - (cd jira/branchhelper && go test)
-  - docker build .
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build . ; fi
+after_script:
+  - mkdir release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+  - cp $GOPATH/bin/jira-branch-helper $RELEASE_DIR/
+  - tar cvzf $RELEASE_TAR $RELEASE_DIR
+
+deploy:
+  provider: releases
+  api_key:
+    secure: Oo3IBQAsWIoVcqfglO0UU0ifDnfLiRkr+a9jEbijLY5nG0/Er0gc7kDqTJ/hN6YhR/Mt704/yRp+Tf0P9F6UCNZTioAN4vLXdnFbh329ljtouDdG7pPc3rlXWmqwn/qr2I8iDIy1ABs1yWQJ7slHEbyDkZ4+6qWaEk3bIt48SCgM7JQaY85k8S+t7oONKgvyKEsFo3qH0f4RznYfWp7HHwCPXtd3sje4JVgKzuq7OzBJ0VUOiuCn5c4MS7kA9Rpr86J/bmCmujoEWcZWYoQZgZAw+l51umBMlDT4R+Xsme0WyYPuSpRIp/aRsHAyBla0johaZPqe2NeXG3atSTofT82rotXU5QQkV0ggbU9oYcPpIekaMZAEATJMzz1cuWvFibTP0YIPBw/1ulqB1d/XxDccJnQy2d6EOfFMLSOPnNc/kumsym2kuDQbvw7c8nPdWLo4mOmNSrPiqmPjCKjLlVWaWiX/5P5pUQuUnMcL05S45KsDrPnN+WtvQcD1L0JWswVcjMrfqR99yxOZBh3FGHc4YoVy5+OOmBoWzUcmjywMcdb3gVgTLNF4eMnHRoPaW+CtwILDp8qFe9IoufEnL63Y143oc5yd/C0aNvpFXFvrHhdSYbJU9besdNqv5mThWvZ/HumndCFcuDPqoGW6k0JuhJmwge/1Uh69VA4lS5U=
+  file: "$RELEASE_TAR"
+  on:
+    repo: PurpleBooth/jira-branch-helper
+    tags: true
+    overwrite: true
