@@ -30,7 +30,7 @@ script:
 before_deploy:
   - mkdir $RELEASE_DIR
   - cp $BINARY_PATH $RELEASE_DIR/
-  - tar cvzf $RELEASE_TAR $RELEASE_DIR
+  - tar -cvzf $RELEASE_TAR -C $RELEASE_DIR .
 deploy:
   provider: releases
   api_key:
