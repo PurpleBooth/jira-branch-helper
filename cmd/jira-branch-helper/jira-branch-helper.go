@@ -41,7 +41,15 @@ const (
 	ErrorExitCodeCouldNotParseIssue
 )
 
-const ArgumentJiraEndpoint = "jira-endpoint"
+const (
+	ArgumentJiraBasicUsername  = "jira-basic-auth-username"
+	ArgumentJiraBasicPassword  = "jira-basic-auth-password"
+	ArgumentJiraCookieUsername = "jira-username"
+	ArgumentJiraCookiePassword = "jira-password"
+	ArgumentJiraEndpoint       = "jira-endpoint"
+	ArgumentTemplate           = "template"
+)
+
 const DefaultTemplate = "{{.Key | ToLower }}-{{.Fields.Summary | Trim | KebabCase }}"
 
 var AppVersion string
@@ -93,15 +101,26 @@ func main() {
 	`
 
 	app.ArgsUsage = "[ISSUE-NUMBER OR ISSUE-URL]"
+
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
+			EnvVar: "JIRA_BRANCH_HELPER_USERNAME_BASIC_AUTH",
+			Name:   ArgumentJiraBasicUsername,
+			Usage:  "Set a basic auth username on HTTP requests to Jira",
+		},
+		cli.StringFlag{
+			EnvVar: "JIRA_BRANCH_HELPER_PASSWORD_BASIC_AUTH",
+			Name:   ArgumentJiraBasicPassword,
+			Usage:  "Set a basic auth password on HTTP requests to Jira",
+		},
+		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_USERNAME",
-			Name:   "jira-username",
+			Name:   ArgumentJiraCookieUsername,
 			Usage:  "The username to authenticate as on Jira",
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_PASSWORD",
-			Name:   "jira-password",
+			Name:   ArgumentJiraCookiePassword,
 			Usage:  "The password to authenticate as on Jira",
 		},
 		cli.StringFlag{
@@ -111,7 +130,7 @@ func main() {
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_TEMPLATE",
-			Name:   "template",
+			Name:   ArgumentTemplate,
 			Usage:  "The template to use to generate the branch name",
 			Value:  DefaultTemplate,
 		},
@@ -174,10 +193,17 @@ func main() {
 			)
 		}
 
-		if c.String("jira-username") != "" {
+		if c.String(ArgumentJiraCookieUsername) != "" {
+			jiraClient.Authentication.AcquireSessionCookie(
+				c.String(ArgumentJiraCookieUsername),
+				c.String(ArgumentJiraCookiePassword),
+			)
+		}
+
+		if c.String(ArgumentJiraBasicUsername) != "" {
 			jiraClient.Authentication.SetBasicAuth(
-				c.String("jira-username"),
-				c.String("jira-password"),
+				c.String(ArgumentJiraBasicUsername),
+				c.String(ArgumentJiraBasicPassword),
 			)
 		}
 
@@ -191,7 +217,7 @@ func main() {
 			)
 		}
 
-		template := c.String("template")
+		template := c.String(ArgumentTemplate)
 
 		if template == "" {
 			template = DefaultTemplate
