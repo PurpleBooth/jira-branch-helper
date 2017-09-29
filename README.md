@@ -49,35 +49,38 @@ NAME:
   * "ScreamingSnakeCase" - e.g. DEVELOPMENTS_PHASE_1_IMPLEMENT_FEATURE__BUME (no parameters)
   * "UpperCamelCase" - e.g. DevelopmentsPhase1ImplementFeatureBume (no parameters)
   * "UpperKebabCase" - e.g. Developments_Phase_1_Implement_Feature__Bume (no parameters)
-  
+
   The template format is as described here https://golang.org/pkg/text/template/
+  
 
 USAGE:
    jira-branch-helper [global options] command [command options] [ISSUE-NUMBER OR ISSUE-URL]
-
-VERSION:
-   v0.1.0
-
-AUTHOR:
-   Billie Alice Thompson <billie@purplebooth.co.uk>
-
+   
+AUTHOR(S):
+   Billie Alice Thompson <billie@purplebooth.co.uk> 
+   
 COMMANDS:
      help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --jira-username value  The username to authenticate as on Jira [$JIRA_BRANCH_HELPER_USERNAME]
-   --jira-password value  The password to authenticate as on Jira [$JIRA_BRANCH_HELPER_PASSWORD]
-   --jira-endpoint value  Jira's URL [$JIRA_BRANCH_HELPER_ENDPOINT]
-   --template value       The template to use to generate the branch name (default: "{{.Key | ToLower }}-{{.Fields.Summary | Trim | KebabCase }}") [$JIRA_BRANCH_HELPER_TEMPLATE]
-   --help, -h             show help
-   --version, -v          print the version
-
+   --jira-basic-auth-username value  Set a basic auth username on HTTP requests to Jira [$JIRA_BRANCH_HELPER_USERNAME_BASIC_AUTH]
+   --jira-basic-auth-password value  Set a basic auth password on HTTP requests to Jira [$JIRA_BRANCH_HELPER_PASSWORD_BASIC_AUTH]
+   --jira-username value             The username to authenticate as on Jira [$JIRA_BRANCH_HELPER_USERNAME]
+   --jira-password value             The password to authenticate as on Jira [$JIRA_BRANCH_HELPER_PASSWORD]
+   --jira-endpoint value             Jira's URL [$JIRA_BRANCH_HELPER_ENDPOINT]
+   --template value                  The template to use to generate the branch name (default: "{{.Key | ToLower }}-{{.Fields.Summary | Trim | KebabCase }}") [$JIRA_BRANCH_HELPER_TEMPLATE]
+   --help, -h                        show help
+   --version, -v                     print the version
+   
 COPYRIGHT:
    
   jira-branch-helper  Copyright (C) 2017  Billie Alice Thompson
   This program comes with ABSOLUTELY NO WARRANTY;  This is free software,
   and you are welcome to redistribute it under certain conditions; see
   LICENSE.md for additional details.
+  
+   
+
   
 ```
 
