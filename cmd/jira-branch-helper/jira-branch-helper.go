@@ -25,6 +25,7 @@ import (
 	"github.com/PurpleBooth/jira-branch-helper/jira/branchhelper"
 	"github.com/andygrunwald/go-jira"
 	"github.com/urfave/cli"
+	"strings"
 )
 
 const (
@@ -159,6 +160,10 @@ func main() {
 			}
 		} else {
 			endpointUrl = c.String(ArgumentJiraEndpoint)
+
+			if endpointUrl[len(endpointUrl)-1:] != "/" {
+				endpointUrl = strings.Join([]string{endpointUrl, "/"}, "")
+			}
 		}
 
 		jiraClient, err := jira.NewClient(nil, endpointUrl)
