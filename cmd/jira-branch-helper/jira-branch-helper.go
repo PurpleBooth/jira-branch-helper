@@ -45,7 +45,7 @@ const DefaultTemplate = "{{.Key | ToLower }}-{{.Fields.Summary | Trim | KebabCas
 
 func main() {
 	app := cli.NewApp()
-	app.Version = "v0.1.0"
+	app.Version = "v0.1.1"
 	app.Authors = []cli.Author{
 		{
 			Name:  "Billie Alice Thompson",
