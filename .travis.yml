@@ -10,12 +10,14 @@ matrix:
   include:
     - os: linux
       env:
-        - RELEASE_DIR=release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+        - RELEASE_DIR=$HOME/release-$TRAVIS_TAG-$TRAVIS_OS_NAME
         - RELEASE_TAR=$RELEASE_DIR.tar.gz
+        - BINARY_PATH=$HOME/jira-branch-helper
     - os: osx
       env:
-        - RELEASE_DIR=release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+        - RELEASE_DIR=$HOME/release-$TRAVIS_TAG-$TRAVIS_OS_NAME
         - RELEASE_TAR=$RELEASE_DIR.tar.gz
+        - BINARY_PATH=$HOME/jira-branch-helper
 
 services:
   - docker
@@ -31,16 +33,17 @@ install:
 - go get github.com/onsi/ginkgo/ginkgo
 - go get github.com/onsi/gomega
 - dep ensure
-- go build -o $GOPATH/bin/jira-branch-helper cmd/jira-branch-helper/jira-branch-helper.go
+- go build -o $BINARY_PATH -ldflags "-X main.AppVersion=$TRAVIS_TAG" cmd/jira-branch-helper/jira-branch-helper.go
 
 script:
   - (cd jira/branchhelper && go test)
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build . ; fi
-after_script:
-  - mkdir release-$TRAVIS_TAG-$TRAVIS_OS_NAME
-  - cp $GOPATH/bin/jira-branch-helper $RELEASE_DIR/
-  - tar cvzf $RELEASE_TAR $RELEASE_DIR
 
+
+before_deploy:
+  - mkdir release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+  - cp $BINARY_PATH $RELEASE_DIR/
+  - tar cvzf $RELEASE_TAR $RELEASE_DIR
 deploy:
   provider: releases
   api_key:
