@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Docker version now listed as "docker" ([#7])
+
+[#7]: https://github.com/PurpleBooth/jira-branch-helper/pull/7
 
 ## [0.1.3] - 2017-09-29
 ### Changed
