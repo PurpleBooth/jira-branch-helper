@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Docker version now listed as "docker" ([#7])
 
+### Added
+- Added badges to readme ([#8])
+
 [#7]: https://github.com/PurpleBooth/jira-branch-helper/pull/7
+[#7]: https://github.com/PurpleBooth/jira-branch-helper/pull/8
 
 ## [0.1.3] - 2017-09-29
 ### Changed

@@ -2,6 +2,8 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/PurpleBooth/jira-branch-helper)][3]
 [![codebeat badge](https://codebeat.co/badges/60d295f5-72cf-42cf-9fd8-db8fab7389ac)][4]
+[![Build Status](https://travis-ci.org/PurpleBooth/jira-branch-helper.svg?branch=master)](https://travis-ci.org/PurpleBooth/jira-branch-helper)
+[![Docker Build Status](https://img.shields.io/docker/build/purplebooth/jira-branch-helper.svg)](https://hub.docker.com/r/purplebooth/jira-branch-helper/)
 
 Build a string that can be used for a branch name from the details in a Jira ticket
   
