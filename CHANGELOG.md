@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.1.5] - 2017-09-29
+### Changed
+- Added better runtime errors ([#12])
+- Add / to endpoint automatically ([#13])
+
+### Added
+- Add more authentication options ([#14])
+
+[#12]: https://github.com/PurpleBooth/jira-branch-helper/pull/12
+[#13]: https://github.com/PurpleBooth/jira-branch-helper/pull/13
+[#14]: https://github.com/PurpleBooth/jira-branch-helper/pull/14
 
 ## [0.1.4] - 2017-09-29
 ### Changed
@@ -53,7 +64,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Initial release
 
-[Unreleased]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.1...v0.1.2
