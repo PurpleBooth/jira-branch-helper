@@ -8,8 +8,10 @@ import (
 
 	"regexp"
 
+	"errors"
 	"github.com/andygrunwald/go-jira"
 	"github.com/danverbraganza/varcaser/varcaser"
+	"net/http/httputil"
 )
 
 type BranchHelper struct {
@@ -66,12 +68,27 @@ func (helper *BranchHelper) FormatIssue(issueId string, rawTmpl string) (string,
 		return "", err
 	}
 
-	issue, _, err := helper.Client.Get(issueId, nil)
+	issue, resp, err := helper.Client.Get(issueId, nil)
 	output := &bytes.Buffer{}
 	writer := bufio.NewWriter(output)
 
 	if err != nil {
-		return "", err
+		if resp != nil {
+			// Save a copy of this request for debugging.
+			reqDump, _ := httputil.DumpRequest(resp.Request, true)
+			writer.Write(reqDump)
+			writer.WriteString("\n\n")
+
+			respDump, _ := httputil.DumpResponse(resp.Response, true)
+			writer.Write(respDump)
+			writer.WriteString("\n\n")
+
+		}
+
+		writer.WriteString(err.Error())
+		writer.Flush()
+
+		return "", errors.New(output.String())
 	}
 
 	err = templ.Execute(writer, issue)
