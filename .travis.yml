@@ -41,7 +41,7 @@ script:
 
 
 before_deploy:
-  - mkdir release-$TRAVIS_TAG-$TRAVIS_OS_NAME
+  - mkdir $RELEASE_DIR
   - cp $BINARY_PATH $RELEASE_DIR/
   - tar cvzf $RELEASE_TAR $RELEASE_DIR
 deploy:
