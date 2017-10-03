@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+
+- Godoc link to badge ([#18])
+
+[#18]: https://github.com/PurpleBooth/jira-branch-helper/pull/18
+
 ## [1.0.0] - 2017-10-03
 ### Changed
 - Added comments ([#16])

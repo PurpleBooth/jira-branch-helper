@@ -1,9 +1,10 @@
 # jira-branch-helper
 
+[![GoDoc](https://godoc.org/github.com/PurpleBooth/jira-branch-helper?status.svg)][2]
 [![Go Report Card](https://goreportcard.com/badge/github.com/PurpleBooth/jira-branch-helper)][3]
 [![codebeat badge](https://codebeat.co/badges/60d295f5-72cf-42cf-9fd8-db8fab7389ac)][4]
-[![Build Status](https://travis-ci.org/PurpleBooth/jira-branch-helper.svg?branch=master)](https://travis-ci.org/PurpleBooth/jira-branch-helper)
-[![Docker Build Status](https://img.shields.io/docker/build/purplebooth/jira-branchhelper.svg)](https://hub.docker.com/r/purplebooth/jira-branchhelper/)
+[![Build Status](https://travis-ci.org/PurpleBooth/jira-branch-helper.svg?branch=master)][5]
+[![Docker Build Status](https://img.shields.io/docker/build/purplebooth/jira-branchhelper.svg)][6]
 
 Build a string that can be used for a branch name from the details in a Jira ticket
   
@@ -95,11 +96,8 @@ $ jira-branch-helper TRANS-2457
 trans-2457-the-language-picker-in-confluence-cloud-should-be-able-to-show-the-languages
 ```
 
-
-## Links
-
-* [Go Docs][2]
-
-[2]: https://godoc.org/github.com/PurpleBooth/jira-branch-helper/jira/branchhelper
+[2]: https://godoc.org/github.com/PurpleBooth/jira-branch-helper
 [3]: https://goreportcard.com/report/github.com/PurpleBooth/jira-branch-helper
 [4]: https://codebeat.co/projects/github-com-purplebooth-jira-branch-helper-master
+[5]: https://travis-ci.org/PurpleBooth/jira-branch-helper
+[6]: https://hub.docker.com/r/purplebooth/jira-branchhelper/
