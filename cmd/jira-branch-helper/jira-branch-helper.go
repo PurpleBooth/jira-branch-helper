@@ -19,14 +19,13 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/PurpleBooth/jira-branch-helper/jira/branchhelper"
 	"github.com/andygrunwald/go-jira"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -157,7 +156,7 @@ func main() {
 	app.EnableBashCompletion = true
 
 	if err := app.Run(os.Args); err != nil {
-		log.Panicln(err)
+		panic(err)
 	}
 }
 
@@ -190,30 +189,29 @@ func action(c *cli.Context) error {
 	}
 
 	jiraClient, err := jira.NewClient(nil, endpointURL)
+
 	if err != nil {
 		return cli.NewExitError(
-			fmt.Sprintf(
-				"failed to initialise jira client: %s",
-				err.Error(),
-			),
+			errors.Wrap(
+				err,
+				"initialising jira client failed",
+			).Error(),
 			errorExitCodeJiraInitFailure,
 		)
 	}
 
-	if authErr := addSessionCookie(c, jiraClient); authErr != nil {
-		return authErr
+	if err := addSessionCookie(c, jiraClient); err != nil {
+		return err
 	}
 
-	if authErr := addBasicAuth(c, jiraClient); authErr != nil {
-		return authErr
-	}
+	addBasicAuth(c, jiraClient)
 
 	issueFormatter := branchhelper.NewJira(jiraClient)
 	issueID, err := issueStrategy.GetIssue(rawIssueID)
 
 	if err != nil {
 		return cli.NewExitError(
-			fmt.Sprintf("failed parse rawIssueID: %s", err.Error()),
+			errors.Wrap(err, "failed to parse the issue id").Error(),
 			errorExitCodeCouldNotParseIssue,
 		)
 	}
@@ -223,34 +221,38 @@ func action(c *cli.Context) error {
 
 	if err != nil {
 		return cli.NewExitError(
-			fmt.Sprintf("failed build branch name: %s", err.Error()),
+			errors.Wrap(err, "failed to build branch name").Error(),
 			errorExitCodeBranchNameBuildFailure,
 		)
-	}
+	} else {
+		if _, err := os.Stdout.WriteString(branchName + "\n"); err != nil {
+			wrappedErr := errors.Wrap(
+				err,
+				"failed to flush branch name to buffer",
+			)
 
-	if _, writeErr := os.Stdout.WriteString(branchName + "\n"); err != nil {
-		return cli.NewExitError(
-			fmt.Sprintf(
-				"failed build branch name: %s",
-				writeErr.Error(),
-			),
-			errorExitCodeBranchNameWriteError,
-		)
+			return cli.NewExitError(
+				wrappedErr.Error(),
+				errorExitCodeBranchNameWriteError,
+			)
+		}
 	}
 
 	return nil
 }
 func addSessionCookie(c *cli.Context, jiraClient *jira.Client) *cli.ExitError {
 	if c.String(argumentJiraCookieUsername) != "" {
-		if _, sessionErr := jiraClient.Authentication.AcquireSessionCookie(
+		if _, err := jiraClient.Authentication.AcquireSessionCookie(
 			c.String(argumentJiraCookieUsername),
 			c.String(argumentJiraCookiePassword),
-		); sessionErr != nil {
+		); err != nil {
+			wrappedErr := errors.Wrap(
+				err,
+				"failed to authenticate with jira",
+			)
+
 			return cli.NewExitError(
-				fmt.Sprintf(
-					"failed to authenticate with jira: %s",
-					sessionErr.Error(),
-				),
+				wrappedErr.Error(),
 				errorExitCodeJiraInitFailure,
 			)
 		}
@@ -258,15 +260,13 @@ func addSessionCookie(c *cli.Context, jiraClient *jira.Client) *cli.ExitError {
 
 	return nil
 }
-func addBasicAuth(c *cli.Context, jiraClient *jira.Client) *cli.ExitError {
+func addBasicAuth(c *cli.Context, jiraClient *jira.Client) {
 	if c.String(argumentJiraBasicUsername) != "" {
 		jiraClient.Authentication.SetBasicAuth(
 			c.String(argumentJiraBasicUsername),
 			c.String(argumentJiraBasicPassword),
 		)
 	}
-
-	return nil
 }
 
 func normaliseEndpointURL(endpointURL string) string {

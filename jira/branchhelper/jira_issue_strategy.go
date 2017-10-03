@@ -19,9 +19,10 @@
 package branchhelper
 
 import (
-	"errors"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // IssueStrategy strategy to use to take a user supplied issue and convert it to
@@ -42,11 +43,9 @@ type IssueURLStrategy struct {
 // GetIssue extracts the issue number from the issue
 func (c IssueURLStrategy) GetIssue(rawIssue string) (string, error) {
 	issueURL, err := url.Parse(rawIssue)
-
 	if err != nil {
-		return "", err
-	}
-	if issueURL.Host == "" {
+		return "", errors.Wrap(err, "issue url invalid")
+	} else if issueURL.Host == "" {
 		return "", errors.New("no host provided, not a valid url")
 	}
 
@@ -64,12 +63,9 @@ func (c IssueLiteralStrategy) GetIssue(rawIssue string) (string, error) {
 func MakeIssueStrategy(
 	issueURL *url.URL,
 ) IssueStrategy {
-	var issueStrategy IssueStrategy
-
 	if issueURL != nil && issueURL.Host != "" {
-		issueStrategy = IssueURLStrategy{}
-	} else {
-		issueStrategy = IssueLiteralStrategy{}
+		return IssueURLStrategy{}
 	}
-	return issueStrategy
+
+	return IssueLiteralStrategy{}
 }
