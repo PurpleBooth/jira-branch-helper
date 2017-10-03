@@ -18,11 +18,11 @@ matrix:
         - BINARY_PATH=$HOME/jira-branch-helper
 
 install:
-- go get -u github.com/golang/dep/cmd/dep
-- go get github.com/onsi/ginkgo/ginkgo
-- go get github.com/onsi/gomega
-- dep ensure
-- go build -o $BINARY_PATH -ldflags "-X main.AppVersion=$TRAVIS_TAG" cmd/jira-branch-helper/jira-branch-helper.go
+  - go get -u github.com/golang/dep/cmd/dep
+  - go get github.com/onsi/ginkgo/ginkgo
+  - go get github.com/onsi/gomega
+  - dep ensure
+  - go build -o $BINARY_PATH -ldflags "-X main.AppVersion=$TRAVIS_TAG" cmd/jira-branch-helper/jira-branch-helper.go
 
 script:
   - (cd jira/branchhelper && go test)

@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Added comments ([#16])
+- Moved Issue strategy resolution to library ([#16])
+- Moved Guess Endpoint URL to library ([#16])
+
+[#16]: https://github.com/PurpleBooth/jira-branch-helper/pull/16
+
 ## [0.1.5] - 2017-09-29
 ### Changed
 - Added better runtime errors ([#12])

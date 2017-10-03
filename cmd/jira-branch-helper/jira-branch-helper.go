@@ -1,4 +1,5 @@
-// 	jira-branch-helper - Build a string that can be used for a branch name from the details in a Jira ticket
+// jira-branch-helper - Build a string that can be used for a branch name from
+// the details in a Jira ticket
 //
 // 	Copyright (C) 2017 Billie Alice Thompson
 //
@@ -19,39 +20,49 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/PurpleBooth/jira-branch-helper/jira/branchhelper"
 	"github.com/andygrunwald/go-jira"
 	"github.com/urfave/cli"
-	"strings"
 )
 
 const (
-	// ErrorExitCodeIncorrectNumberOfArguments is the exit code when there isn't an issue provided
-	ErrorExitCodeIncorrectNumberOfArguments = 1 << iota
-	// ErrorExitCodeNoEndpointUrl is the exit code when there is no Jira endpoint
-	ErrorExitCodeNoEndpointUrl
-	// ErrorExitCodeJiraInitFailure happens when we fail to initialise our jira client
-	ErrorExitCodeJiraInitFailure
-	// ErrorExitCodeBranchNameBuildFailure happens when we fail to build the branch name
-	ErrorExitCodeBranchNameBuildFailure
-	// ErrorExitCodeCouldNotParseIssue happens when we fail to extract the issue number from what the user provided
-	ErrorExitCodeCouldNotParseIssue
+	errorExitCodeIncorrectNumberOfArguments = 1 << iota
+	errorExitCodeNoEndpointURL
+	errorExitCodeJiraInitFailure
+	errorExitCodeBranchNameBuildFailure
+	errorExitCodeCouldNotParseIssue
+	errorExitCodeBranchNameWriteError
 )
 
 const (
-	ArgumentJiraBasicUsername  = "jira-basic-auth-username"
-	ArgumentJiraBasicPassword  = "jira-basic-auth-password"
-	ArgumentJiraCookieUsername = "jira-username"
-	ArgumentJiraCookiePassword = "jira-password"
-	ArgumentJiraEndpoint       = "jira-endpoint"
-	ArgumentTemplate           = "template"
+	// argumentJiraBasicUsername is the option to set the username for basic
+	// auth for the Jira API
+	argumentJiraBasicUsername = "jira-basic-auth-username"
+	// argumentJiraBasicPassword is the option to set the username for basic
+	// auth for the Jira API
+	argumentJiraBasicPassword = "jira-basic-auth-password"
+	// argumentJiraCookieUsername is the option to set the username for the Jira
+	// API (via simulating a real login)
+	argumentJiraCookieUsername = "jira-username"
+	// argumentJiraCookiePassword is the option to set the password for the Jira
+	// API (via simulating a real login)
+	argumentJiraCookiePassword = "jira-password"
+	// argumentJiraEndpoint is the option to set jira's URL
+	argumentJiraEndpoint = "jira-endpoint"
+	// argumentTemplate is the option to set the template to generate the branch
+	argumentTemplate = "template"
 )
 
-const DefaultTemplate = "{{.Key | ToLower }}-{{.Fields.Summary | Trim | KebabCase }}"
+// defaultTemplate is The default template to use for the branch
+const defaultTemplate = "{{.Key | ToLower }}-" +
+	"{{.Fields.Summary | Trim | KebabCase }}"
 
+// AppVersion is the version of the app. Set when building using ldflags
 var AppVersion string
 
 func main() {
@@ -65,7 +76,8 @@ func main() {
 	}
 	app.Name = "jira-branch-helper"
 	app.Usage = `
-	Build a string that can be used for a branch name from the details in a Jira ticket
+	Build a string that can be used for a branch name from the details in a Jira
+	ticket
 
 	Example usage
 
@@ -75,23 +87,29 @@ func main() {
 	$ jira-branch-helper TST-123
 	tst-123-ticket-title-goes-here
 
-	Environment variables may be used in place of flags, parameters, see parameters with [$ENV_NAME_HERE] at the end.
+	Environment variables may be used in place of flags, parameters, see
+	parameters with [$ENV_NAME_HERE] at the end.
 
 	The following functions are available for templating
 
-	* "Trim" - Remove whitespace at the start and end of the function (no parameters)
-	* "ToLower" - Lower case your string (no parameters)
-	* "ToUpper" - Upper case your string (no parameters)
-	* "Replace" - Replace characters e.g. {{.Fields.Summary | Replace "A" "B" }}, would replace A with B
-	* "KebabCase" - e.g. developments-phase-1-implement-feature--bume (no parameters)
-	* "LowerSnakeCase" - e.g. developments_phase_1_implement_feature__bume (no parameters)
-	* "LowerCamelCase" - e.g. developmentsPhase1ImplementFeatureBume (no parameters)
-	* "ScreamingKebabCase" - e.g. DEVELOPMENTS-PHASE-1-IMPLEMENT-FEATURE--BUME (no parameters)
-	* "ScreamingSnakeCase" - e.g. DEVELOPMENTS_PHASE_1_IMPLEMENT_FEATURE__BUME (no parameters)
-	* "UpperCamelCase" - e.g. DevelopmentsPhase1ImplementFeatureBume (no parameters)
-	* "UpperKebabCase" - e.g. Developments_Phase_1_Implement_Feature__Bume (no parameters)
+	* "Trim"               - Remove whitespace from start and end
+	* "ToLower"            - Lower case your string
+	* "ToUpper"            - Upper case your string
+	* "Replace"            - Replace characters params: for-search, replace-with
+	* "KebabCase"          - Switch the casing-to-kebab
+	* "LowerSnakeCase"     - Switch the casing_to_snake
+	* "LowerCamelCase"     - Switch the casingToCamel
+	* "ScreamingKebabCase" - Switch the CASING-TO-KEBAB
+	* "ScreamingSnakeCase" - Switch the CASING_TO_SNAKE
+	* "UpperCamelCase"     - Switch the CasingToCamel
+	* "UpperKebabCase"     - Switch the Casing-To-Kebab
 
-	The template format is as described here https://golang.org/pkg/text/template/
+	The template format is as described here
+	https://golang.org/pkg/text/template/
+
+	Templates look like this
+
+	{{.Key | ToLower }}-{{.Fields.Summary | Replace "A" "B" | KebabCase }}
 	`
 	app.Copyright = `
 	jira-branch-helper  Copyright (C) 2017  Billie Alice Thompson
@@ -105,141 +123,171 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_USERNAME_BASIC_AUTH",
-			Name:   ArgumentJiraBasicUsername,
+			Name:   argumentJiraBasicUsername,
 			Usage:  "Set a basic auth username on HTTP requests to Jira",
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_PASSWORD_BASIC_AUTH",
-			Name:   ArgumentJiraBasicPassword,
+			Name:   argumentJiraBasicPassword,
 			Usage:  "Set a basic auth password on HTTP requests to Jira",
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_USERNAME",
-			Name:   ArgumentJiraCookieUsername,
+			Name:   argumentJiraCookieUsername,
 			Usage:  "The username to authenticate as on Jira",
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_PASSWORD",
-			Name:   ArgumentJiraCookiePassword,
+			Name:   argumentJiraCookiePassword,
 			Usage:  "The password to authenticate as on Jira",
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_ENDPOINT",
-			Name:   ArgumentJiraEndpoint,
+			Name:   argumentJiraEndpoint,
 			Usage:  "Jira's URL",
 		},
 		cli.StringFlag{
 			EnvVar: "JIRA_BRANCH_HELPER_TEMPLATE",
-			Name:   ArgumentTemplate,
+			Name:   argumentTemplate,
 			Usage:  "The template to use to generate the branch name",
-			Value:  DefaultTemplate,
+			Value:  defaultTemplate,
 		},
 	}
-	app.Action = func(c *cli.Context) error {
-		if c.NArg() != 1 {
-			return cli.NewExitError(
-				"incorrect number of arguments, see `jira-branch-helper help` for full usage information",
-				ErrorExitCodeIncorrectNumberOfArguments,
-			)
-		}
-		var endpointUrl string
-		var issueStrategy branchhelper.IssueStrategy
-		unparsedIssue := c.Args().Get(0)
-		issueUrl, err := url.Parse(unparsedIssue)
-
-		if issueUrl != nil && issueUrl.Host != "" {
-			issueStrategy = branchhelper.IssueUrlStrategy{}
-		} else {
-			issueStrategy = branchhelper.IssueLiteralStrategy{}
-		}
-
-		if c.String(ArgumentJiraEndpoint) == "" {
-			urlHelpers := []branchhelper.EndpointStrategy{
-				branchhelper.EndpointCombinedStrategy{},
-				branchhelper.EndpointSoloStrategy{},
-			}
-
-			if err == nil {
-				for i := range urlHelpers {
-					possibleEndpointUrl := urlHelpers[i].GetEndpoint(issueUrl)
-
-					if possibleEndpointUrl != nil {
-						endpointUrl = possibleEndpointUrl.String()
-
-						break
-					}
-				}
-			}
-
-			if endpointUrl == "" {
-				return cli.NewExitError(
-					"you must provide a Jira URL via Flag or environment variable or a full issue url",
-					ErrorExitCodeNoEndpointUrl,
-				)
-			}
-		} else {
-			endpointUrl = c.String(ArgumentJiraEndpoint)
-
-			if endpointUrl[len(endpointUrl)-1:] != "/" {
-				endpointUrl = strings.Join([]string{endpointUrl, "/"}, "")
-			}
-		}
-
-		jiraClient, err := jira.NewClient(nil, endpointUrl)
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("failed to initialise jira client: %s", err.Error()),
-				ErrorExitCodeJiraInitFailure,
-			)
-		}
-
-		if c.String(ArgumentJiraCookieUsername) != "" {
-			jiraClient.Authentication.AcquireSessionCookie(
-				c.String(ArgumentJiraCookieUsername),
-				c.String(ArgumentJiraCookiePassword),
-			)
-		}
-
-		if c.String(ArgumentJiraBasicUsername) != "" {
-			jiraClient.Authentication.SetBasicAuth(
-				c.String(ArgumentJiraBasicUsername),
-				c.String(ArgumentJiraBasicPassword),
-			)
-		}
-
-		issueFormatter := branchhelper.NewBranchHelper(jiraClient)
-		issueId, err := issueStrategy.GetIssue(unparsedIssue)
-
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("failed parse unparsedIssue: %s", err.Error()),
-				ErrorExitCodeCouldNotParseIssue,
-			)
-		}
-
-		template := c.String(ArgumentTemplate)
-
-		if template == "" {
-			template = DefaultTemplate
-		}
-
-		branchName, err := issueFormatter.FormatIssue(
-			issueId,
-			template,
-		)
-
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("failed build branch name: %s", err.Error()),
-				ErrorExitCodeBranchNameBuildFailure,
-			)
-		}
-
-		os.Stdout.WriteString(branchName)
-		os.Stdout.WriteString("\n")
-
-		return nil
-	}
+	app.Action = action
 	app.EnableBashCompletion = true
-	app.Run(os.Args)
+
+	if err := app.Run(os.Args); err != nil {
+		log.Panicln(err)
+	}
+}
+
+func action(c *cli.Context) error {
+	if c.NArg() != 1 {
+		return cli.NewExitError(
+			"incorrect number of arguments, see "+
+				"`jira-branch-helper help` for full usage information",
+			errorExitCodeIncorrectNumberOfArguments,
+		)
+	}
+
+	var endpointURL string
+	rawIssueID := c.Args().Get(0)
+	issueURL, err := url.Parse(rawIssueID)
+	issueStrategy := branchhelper.MakeIssueStrategy(issueURL)
+
+	if c.String(argumentJiraEndpoint) == "" {
+		endpointURL = branchhelper.GuessEndpointURL(issueURL)
+		if endpointURL == "" {
+			return cli.NewExitError(
+				"you must provide a Jira URL via Flag or "+
+					"environment variable or a full issue url",
+				errorExitCodeNoEndpointURL,
+			)
+		}
+	} else {
+		endpointURL = c.String(argumentJiraEndpoint)
+		endpointURL = normaliseEndpointURL(endpointURL)
+	}
+
+	jiraClient, err := jira.NewClient(nil, endpointURL)
+	if err != nil {
+		return cli.NewExitError(
+			fmt.Sprintf(
+				"failed to initialise jira client: %s",
+				err.Error(),
+			),
+			errorExitCodeJiraInitFailure,
+		)
+	}
+
+	if authErr := addSessionCookie(c, jiraClient); authErr != nil {
+		return authErr
+	}
+
+	if authErr := addBasicAuth(c, jiraClient); authErr != nil {
+		return authErr
+	}
+
+	issueFormatter := branchhelper.NewJira(jiraClient)
+	issueID, err := issueStrategy.GetIssue(rawIssueID)
+
+	if err != nil {
+		return cli.NewExitError(
+			fmt.Sprintf("failed parse rawIssueID: %s", err.Error()),
+			errorExitCodeCouldNotParseIssue,
+		)
+	}
+
+	template := c.String(argumentTemplate)
+	branchName, err := formatIssue(issueFormatter, template, issueID)
+
+	if err != nil {
+		return cli.NewExitError(
+			fmt.Sprintf("failed build branch name: %s", err.Error()),
+			errorExitCodeBranchNameBuildFailure,
+		)
+	}
+
+	if _, writeErr := os.Stdout.WriteString(branchName + "\n"); err != nil {
+		return cli.NewExitError(
+			fmt.Sprintf(
+				"failed build branch name: %s",
+				writeErr.Error(),
+			),
+			errorExitCodeBranchNameWriteError,
+		)
+	}
+
+	return nil
+}
+func addSessionCookie(c *cli.Context, jiraClient *jira.Client) *cli.ExitError {
+	if c.String(argumentJiraCookieUsername) != "" {
+		if _, sessionErr := jiraClient.Authentication.AcquireSessionCookie(
+			c.String(argumentJiraCookieUsername),
+			c.String(argumentJiraCookiePassword),
+		); sessionErr != nil {
+			return cli.NewExitError(
+				fmt.Sprintf(
+					"failed to authenticate with jira: %s",
+					sessionErr.Error(),
+				),
+				errorExitCodeJiraInitFailure,
+			)
+		}
+	}
+
+	return nil
+}
+func addBasicAuth(c *cli.Context, jiraClient *jira.Client) *cli.ExitError {
+	if c.String(argumentJiraBasicUsername) != "" {
+		jiraClient.Authentication.SetBasicAuth(
+			c.String(argumentJiraBasicUsername),
+			c.String(argumentJiraBasicPassword),
+		)
+	}
+
+	return nil
+}
+
+func normaliseEndpointURL(endpointURL string) string {
+	if endpointURL[len(endpointURL)-1:] != "/" {
+		endpointURL = strings.Join([]string{endpointURL, "/"}, "")
+	}
+	return endpointURL
+}
+
+func formatIssue(
+	issueFormatter *branchhelper.Jira,
+	template string,
+	issueID string,
+) (string, error) {
+
+	if template == "" {
+		template = defaultTemplate
+	}
+	branchName, err := issueFormatter.FormatIssue(
+		issueID,
+		template,
+	)
+	return branchName, err
 }
