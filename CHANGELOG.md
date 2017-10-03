@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Godoc link to badge ([#18])
+- Errors are formatted in a standard way ([#19])
 
 [#18]: https://github.com/PurpleBooth/jira-branch-helper/pull/18
+[#19]: https://github.com/PurpleBooth/jira-branch-helper/pull/19
 
 ## [1.0.0] - 2017-10-03
 ### Changed

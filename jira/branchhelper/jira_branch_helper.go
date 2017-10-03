@@ -21,7 +21,6 @@ package branchhelper
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"net/http/httputil"
 	"regexp"
 	"strings"
@@ -29,6 +28,7 @@ import (
 
 	"github.com/andygrunwald/go-jira"
 	"github.com/danverbraganza/varcaser/varcaser"
+	"github.com/pkg/errors"
 )
 
 // Jira will generate branch names from Jira issues
@@ -67,13 +67,11 @@ func toSnakeCase(s string) string {
 
 func trim(s string) string {
 	startRegex, err := regexp.Compile("^\\s+")
-
 	if err != nil {
 		return s
 	}
 
 	endRegex, err := regexp.Compile("\\s+$")
-
 	if err != nil {
 		return s
 	}
@@ -105,9 +103,113 @@ func normaliseArgument(
 // FormatIssue generate a branch name from a template and a issue ID
 func (helper *Jira) FormatIssue(
 	issueID string,
-	rawTmpl string,
+	rawTempl string,
 ) (string, error) {
-	templ, err := template.New("branch-name").Funcs(template.FuncMap{
+	templ, err := template.New(
+		"branch-name",
+	).Funcs(
+		templateFunctions(),
+	).Parse(rawTempl)
+
+	if err != nil {
+		return "", errors.Wrap(
+			err,
+			"failed to parse branch template",
+		)
+	}
+
+	issue, resp, err := helper.Client.Get(issueID, nil)
+	if err != nil {
+		return "", newRequestError(err, resp)
+	}
+
+	buffer := &bytes.Buffer{}
+	writer := bufio.NewWriter(buffer)
+
+	if err := templ.Execute(writer, issue); err != nil {
+		return "", errors.Wrap(
+			err,
+			"failed to execute branch template",
+		)
+	}
+
+	if err := writer.Flush(); err != nil {
+		return "", errors.Wrap(
+			err,
+			"failed flush template output to buffer",
+		)
+	}
+
+	return buffer.String(), nil
+
+}
+
+func newRequestError(triggerErr error, resp *jira.Response) error {
+	buffer := &bytes.Buffer{}
+	writer := bufio.NewWriter(buffer)
+
+	if resp != nil {
+		respStr, err := dumpResponse(resp)
+
+		if err != nil {
+			return errors.Wrap(err, "failed dumping jira response")
+		}
+
+		if _, err := buffer.WriteString(respStr); err != nil {
+			return errors.Wrap(
+				err,
+				"failed writing jira response to buffer",
+			)
+		}
+	}
+
+	if _, err := writer.WriteString(triggerErr.Error()); err != nil {
+		return errors.Wrap(
+			err,
+			"failed writing jira error to buffer",
+		)
+	}
+
+	if err := writer.Flush(); err != nil {
+		return errors.Wrap(
+			err,
+			"failed flushing jira error to buffer",
+		)
+	}
+
+	return errors.New(buffer.String())
+}
+
+func dumpResponse(resp *jira.Response) (string, error) {
+	respParts := []string{}
+
+	reqDump, err := httputil.DumpRequest(resp.Request, true)
+	if err != nil {
+		return "", errors.Wrap(
+			err,
+			"dumping jira http request failed",
+		)
+	}
+
+	respDump, err := httputil.DumpResponse(resp.Response, true)
+	if err != nil {
+		return "", errors.Wrap(
+			err,
+			"dumping jira http response failed",
+		)
+	}
+
+	respParts = append(respParts, string(reqDump))
+	respParts = append(respParts, "\n\n")
+	respParts = append(respParts, string(respDump))
+	respParts = append(respParts, "\n\n")
+	fullResp := strings.Join(respParts, "")
+
+	return fullResp, nil
+}
+
+func templateFunctions() template.FuncMap {
+	return template.FuncMap{
 		"Trim":               trim,
 		"ToLower":            strings.ToLower,
 		"ToUpper":            strings.ToUpper,
@@ -119,95 +221,10 @@ func (helper *Jira) FormatIssue(
 		"ScreamingSnakeCase": normaliseArgument(varcaser.ScreamingSnakeCase),
 		"UpperCamelCase":     normaliseArgument(varcaser.UpperCamelCase),
 		"UpperKebabCase":     normaliseArgument(varcaser.UpperKebabCase),
-	}).Parse(rawTmpl)
-
-	if err != nil {
-		return "", err
 	}
-
-	issue, resp, err := helper.Client.Get(issueID, nil)
-	buffer := &bytes.Buffer{}
-	writer := bufio.NewWriter(buffer)
-
-	if err != nil {
-		return "", makeJiraRequestError(err, resp)
-	}
-
-	if err := templ.Execute(writer, issue); err != nil {
-		return "", err
-	}
-
-	if err := writer.Flush(); err != nil {
-		return "", err
-	}
-
-	return buffer.String(), nil
-
 }
 
-func makeJiraRequestError(requestErr error, resp *jira.Response) error {
-	buffer := &bytes.Buffer{}
-	writer := bufio.NewWriter(buffer)
-
-	if resp != nil {
-		dumpedResponse, dumpErr := jiraResponseToString(resp)
-
-		if dumpErr != nil {
-			return dumpErr
-		}
-
-		if _, err := buffer.WriteString(dumpedResponse); err != nil {
-			return err
-		}
-	}
-
-	if _, err := writer.WriteString(requestErr.Error()); err != nil {
-		return err
-	}
-
-	if err := writer.Flush(); err != nil {
-		return err
-	}
-
-	return errors.New(buffer.String())
-}
-
-func jiraResponseToString(resp *jira.Response) (string, error) {
-	buf := &bytes.Buffer{}
-	writer := bufio.NewWriter(buf)
-
-	reqDump, err := httputil.DumpRequest(resp.Request, true)
-
-	if err != nil {
-		return "", err
-	}
-
-	if _, err = writer.Write(reqDump); err != nil {
-		return "", err
-	}
-
-	if _, err = writer.WriteString("\n\n"); err != nil {
-		return "", err
-	}
-
-	respDump, err := httputil.DumpResponse(resp.Response, true)
-
-	if err != nil {
-		return "", err
-	}
-
-	if _, err = writer.Write(respDump); err != nil {
-		return "", err
-	}
-
-	if _, err = writer.WriteString("\n\n"); err != nil {
-		return "", err
-	}
-
-	return buf.String(), err
-}
-
-// NewJira from a Jira client build a client helper
+// NewJira from a Jira client, build a client helper
 func NewJira(
 	client *jira.Client,
 ) *Jira {

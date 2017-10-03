@@ -17,7 +17,7 @@
   name = "github.com/fatih/structs"
   packages = ["."]
   revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
-  version = "v1.0.0"
+  version = "v1.0"
 
 [[projects]]
   branch = "master"
@@ -38,6 +38,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/trivago/tgo"
   packages = ["tcontainer","treflect"]
   revision = "e4d1ddd28c17dd89ed26327cf69fded22060671b"
@@ -53,7 +59,7 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["html","html/atom","html/charset"]
-  revision = "0a9397675ba34b2845f758fe3cd68828369c6517"
+  revision = "a04bdaca5b32abe1c069418fb7088ae607de5bd0"
 
 [[projects]]
   branch = "master"
@@ -76,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6269b45f72dca88b267cf0a8cf5d6301869139ae5ffc10fb94506d37ea13276f"
+  inputs-digest = "962b600035ad0b37f3341766d33b2a06d462386f7edd41e7f2135efe0f352cfd"
   solver-name = "gps-cdcl"
   solver-version = 1
