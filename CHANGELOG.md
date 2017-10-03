@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [1.0.0] - 2017-10-03
 ### Changed
 - Added comments ([#16])
 - Moved Issue strategy resolution to library ([#16])
@@ -71,7 +72,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Initial release
 
-[Unreleased]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/PurpleBooth/jira-branch-helper/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.5...v1.0.0
 [0.1.5]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/PurpleBooth/jira-branch-helper/compare/v0.1.2...v0.1.3
