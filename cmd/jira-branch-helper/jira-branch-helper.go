@@ -224,18 +224,18 @@ func action(c *cli.Context) error {
 			errors.Wrap(err, "failed to build branch name").Error(),
 			errorExitCodeBranchNameBuildFailure,
 		)
-	} else {
-		if _, err := os.Stdout.WriteString(branchName + "\n"); err != nil {
-			wrappedErr := errors.Wrap(
-				err,
-				"failed to flush branch name to buffer",
-			)
+	}
 
-			return cli.NewExitError(
-				wrappedErr.Error(),
-				errorExitCodeBranchNameWriteError,
-			)
-		}
+	if _, err := os.Stdout.WriteString(branchName + "\n"); err != nil {
+		wrappedErr := errors.Wrap(
+			err,
+			"failed to flush branch name to buffer",
+		)
+
+		return cli.NewExitError(
+			wrappedErr.Error(),
+			errorExitCodeBranchNameWriteError,
+		)
 	}
 
 	return nil
